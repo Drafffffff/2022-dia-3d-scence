@@ -9,67 +9,46 @@ import {UnrealBloomPass} from "three/addons/postprocessing/UnrealBloomPass.js";
 import {RGBShiftShader} from "three/examples/jsm/shaders/RGBShiftShader";
 import {DotScreenShader} from "three/addons/shaders/DotScreenShader.js";
 import {GUI} from "dat.gui";
-import studio from '@theatre/studio'
-import {getProject, types} from '@theatre/core'
 import "./style.css"
+import Tween from '@tweenjs/tween.js'
 
-// Initialize the studio
-studio.initialize()
-
-// Create a project for the animation
-const project = getProject('fengzheng')
-// Create a sheet
-const sheet = project.sheet('Animated scene')
 //定义变量
 let camera, scene, composer, bloomPass, control, renderer
 let clock, model, skeleton, mixer, action
-let RGBshiftShader
+let RGBshiftShader,tween,animations,environmentMapTexture,earthenvironmentMapTexture
+let action1,action2,action3,action4,actionState
+
+
+//资源加载管理
+const manager = new THREE.LoadingManager();
+manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+    console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
+//资源加载完成
+manager.onLoad = function ( ) {
+    init()
+    console.log( 'Loading complete!');
+};
+manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+    console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
+manager.onError = function ( url ) {
+    console.log( 'There was an error loading ' + url );
+};
+
+
 // 调试参数
 const params = {
     RGBshiftShaderp: 0.0015,
     emissiveIntensity: 1,
-    toneMappingExposure: 1.5
+    toneMappingExposure: 1.5,
+    cameraX: 0,
+    cameraY: 40,
+    cameraZ: -2,
 }
 
-
-//材质加载器
-const cubeTextureLoader = new THREE.CubeTextureLoader()
-
-//加载环境贴图
-const environmentMapTexture = cubeTextureLoader.load([
-    '/texture/envcube/px.png',
-    '/texture/envcube/nx.png',
-    '/texture/envcube/py.png',
-    '/texture/envcube/ny.png',
-    '/texture/envcube/pz.png',
-    '/texture/envcube/nz.png',
-])
-const earthenvironmentMapTexture = cubeTextureLoader.load([
-    '/texture/earthmap/px.png',
-    '/texture/earthmap/nx.png',
-    '/texture/earthmap/py.png',
-    '/texture/earthmap/ny.png',
-    '/texture/earthmap/pz.png',
-    '/texture/earthmap/nz.png',
-])
-
-earthenvironmentMapTexture.encoding = THREE.sRGBEncoding
-environmentMapTexture.encoding = THREE.sRGBEncoding
-//初始化场景
-init()
-const cameraObj = sheet.object('camera', {
-    // Note that the rotation is in radians
-    // (full rotation: 2 * Math.PI)
-    position: {
-        x: types.number(0, {range: [-40, 40]}),
-        y: types.number(0, {range: [-40, 40]}),
-        z: types.number(0, {range: [-40, 40]})
-    }
-})
-cameraObj.onValuesChange((values) => {
-    const {x, y, z} = values.position
-    camera.position.set(x, y, z)
-})
+//加载资源
+load()
 
 //初始化场景函数
 function init() {
@@ -78,40 +57,28 @@ function init() {
     //定义相机
     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 2, 500);
     //初始化相机位置
-    camera.position.set(0, 2, -20);
+    camera.position.set(0, 40, -2);
+
     //初始化相机朝向
     camera.lookAt(0, 0, 0);
     //初始化时钟（动画用）
     clock = new THREE.Clock();
     //初始化场景
     scene = new THREE.Scene();
-    scene.background = earthenvironmentMapTexture
 
     //定义灯光
     //点光
     const pointLight = new THREE.PointLight(0xff2e1f, 1, 10);
     pointLight.position.set(3, 3, 3);
     scene.add(pointLight);
-    // const sphereSize = 1;
-    // const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
-    // scene.add( pointLightHelper );
     const pointLight1 = new THREE.PointLight(0x1dbaff, 5, 10);
     pointLight1.position.set(-3, -3, 3);
-    // scene.add( pointLight1 );
-    // const pointLightHelper1 = new THREE.PointLightHelper( pointLight1, sphereSize );
-    // scene.add( pointLightHelper1 );
-
-
     const AmbientLight = new THREE.AmbientLight(0xffffff, 1);
     AmbientLight.position.set(0, 20, 0);
     scene.add(AmbientLight);
-
     const dirLight = new THREE.DirectionalLight(0xffdfcb, 10);
     dirLight.position.set(-3, 10, -10);
     scene.add(dirLight);
-
-    //加载模型
-    load()
     //初始化渲染器
     renderer = new THREE.WebGLRenderer({
         antialias: true
@@ -139,67 +106,115 @@ function init() {
     control.minDistance = 3;
     control.maxDistance = 40;
     control.maxPolarAngle = Math.PI * 0.7;
+    control.enablePan=false
     container.appendChild(renderer.domElement);
     //调试ui
     gui()
-    //动画循环
+    //开场镜头动画
+    tween = new Tween.Tween(camera.position)
+
+    tween.to({x: -16.8, y: 28.6, z: -24.6}, 1166.67)
+        .easing(Tween.Easing.Linear.None)
+        .delay(100)
+        .onComplete(() => {
+            new Tween.Tween(camera.position).to({
+                x: -22.785,
+                y: 14.178,
+                z: -9.6
+            }, 4333.3)
+                .start()
+        })
+
+    //场景修改
+    scene.add(skeleton);
+    scene.add(model);
+    model.children[0].children[1].material.envMap = environmentMapTexture
+    model.children[0].children[2].material.envMap = environmentMapTexture
+    model.children[0].children[3].material.envMap = environmentMapTexture
+    model.children[0].children[5].children[0].material.envMap = environmentMapTexture
+    model.children[0].children[5].children[1].material.envMap = earthenvironmentMapTexture
+    model.children[0].children[5].children[2].material.envMap = earthenvironmentMapTexture
+    model.children[0].children[1].material.envMapIntensity = 0.4
+    model.children[0].children[2].material.envMapIntensity = 0.4
+    model.children[0].children[3].material.envMapIntensity = 0.4
+    model.children[0].children[5].children[2].material.envMapIntensity = 5
+    scene.background = earthenvironmentMapTexture
     animate()
+    tween.start()
+    action3.play()
+
+
 }
 
 //调试ui
 function gui() {
-    const panel = new GUI({width: 300});
-
-
-    panel.add(params, 'RGBshiftShaderp', 0.0, 0.01, 0.0001).onChange(v => {
-        RGBshiftShader.uniforms['amount'].value = v
-    });
-    panel.add(params, 'emissiveIntensity', 0.0, 1, 0.01).onChange(v => {
-        model.children[0].children[4].children[0].material.emissiveIntensity = v
-        model.children[0].children[4].children[1].material.emissiveIntensity = v
-        model.children[0].children[4].children[2].material.emissiveIntensity = v
-        model.children[0].children[1].material.emissiveIntensity = v
-        model.children[0].children[2].material.emissiveIntensity = v
-        model.children[0].children[3].material.emissiveIntensity = v
-    });
-    panel.add(params, 'toneMappingExposure', 0.0, 5, 0.01).onChange(v => {
-        renderer.toneMappingExposure = v
-    });
+    // const panel = new GUI({width: 300});
+    // panel.add(params, 'RGBshiftShaderp', 0.0, 0.01, 0.0001).onChange(v => {
+    //     RGBshiftShader.uniforms['amount'].value = v
+    // });
+    // panel.add(params, 'emissiveIntensity', 0.0, 1, 0.01).onChange(v => {
+    //     model.children[0].children[4].children[0].material.emissiveIntensity = v
+    //     model.children[0].children[4].children[1].material.emissiveIntensity = v
+    //     model.children[0].children[4].children[2].material.emissiveIntensity = v
+    //     model.children[0].children[1].material.emissiveIntensity = v
+    //     model.children[0].children[2].material.emissiveIntensity = v
+    //     model.children[0].children[3].material.emissiveIntensity = v
+    // });
+    // panel.add(params, 'toneMappingExposure', 0.0, 5, 0.01).onChange(v => {
+    //     renderer.toneMappingExposure = v
+    // });
 }
 
 function load() {
+    //材质加载器
+    const cubeTextureLoader = new THREE.CubeTextureLoader(manager)
+    //加载环境贴图
+    environmentMapTexture = cubeTextureLoader.load([
+        '/texture/envcube/px.png',
+        '/texture/envcube/nx.png',
+        '/texture/envcube/py.png',
+        '/texture/envcube/ny.png',
+        '/texture/envcube/pz.png',
+        '/texture/envcube/nz.png',
+    ])
+     earthenvironmentMapTexture = cubeTextureLoader.load([
+        '/texture/earthmap/px.png',
+        '/texture/earthmap/nx.png',
+        '/texture/earthmap/py.png',
+        '/texture/earthmap/ny.png',
+        '/texture/earthmap/pz.png',
+        '/texture/earthmap/nz.png',
+    ])
+    earthenvironmentMapTexture.encoding = THREE.sRGBEncoding
+    environmentMapTexture.encoding = THREE.sRGBEncoding
     //初始化GLTF加载器
-    const loader = new GLTFLoader();
-    const dracoLoader = new DRACOLoader();
+    const loader = new GLTFLoader(manager);
+    const dracoLoader = new DRACOLoader(manager);
     dracoLoader.setDecoderPath('/draco/');
     loader.setDRACOLoader(dracoLoader);
     //读取模型
-    loader.load('/model/fengzheng.glb', function (gltf) {
+    loader.load('/model/fengzheng2.glb', function (gltf) {
+        //读取模型
         model = gltf.scene;
-
-        model.children[0].children[1].material.envMap = environmentMapTexture
-        model.children[0].children[2].material.envMap = environmentMapTexture
-        model.children[0].children[3].material.envMap = environmentMapTexture
-        // model.children[0].children[4].children[0].material.envMap = environmentMapTexture
-        // model.children[0].children[4].children[1].material.envMap = earthenvironmentMapTexture
-        model.children[0].children[4].children[2].material.envMap = earthenvironmentMapTexture
-        model.children[0].children[1].material.envMapIntensity = 0.4
-        model.children[0].children[2].material.envMapIntensity = 0.4
-        model.children[0].children[3].material.envMapIntensity = 0.4
-        model.children[0].children[4].children[2].material.envMapIntensity = 5
-
-        //读取动画骨骼
+        //读取动画
+        animations = gltf.animations;
+        console.log(animations)
+        //读取骨骼
         skeleton = new THREE.SkeletonHelper(model);
         skeleton.visible = false;
-        scene.add(skeleton);
-        //读取动画
-        const animations = gltf.animations;
         //初始化动画混合器
         mixer = new THREE.AnimationMixer(model);
-        action = mixer.clipAction(animations[2]);
-        action.play()
-        //添加到场景
-        scene.add(gltf.scene);
+        //风筝状态
+        action1 = mixer.clipAction(animations[0]);
+        //天宫状态
+        action2 = mixer.clipAction(animations[1]);
+        //风筝-》天宫
+        action3 = mixer.clipAction(animations[2]);
+        action3.loop=THREE.LoopOnce
+
+        //天宫-》风筝
+        action4 = mixer.clipAction(animations[3]);
+
     });
 }
 
@@ -209,6 +224,7 @@ function animate() {
     if (mixer) {
         mixer.update(clock.getDelta())
     }
+    Tween.update()
     control.update()
-    composer.render();
+    composer.render()
 }
