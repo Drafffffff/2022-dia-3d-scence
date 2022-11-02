@@ -13,29 +13,54 @@ import "./style.css"
 import Tween from '@tweenjs/tween.js'
 
 //定义变量
-let camera, scene, composer, bloomPass, control, renderer
-let clock, model, skeleton, mixer, action
-let RGBshiftShader,tween,animations,environmentMapTexture,earthenvironmentMapTexture
-let action1,action2,action3,action4,actionState
-
+let camera, scene, composer, bloomPass, control, renderer, raycaster
+let clock, model, skeleton, mixer, action, mouse
+let RGBshiftShader, tween, animations, environmentMapTexture, earthenvironmentMapTexture
+let action1, action2, action3, action4, actionState
+let actionChanging = true
 
 //资源加载管理
 const manager = new THREE.LoadingManager();
-manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
-    console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+manager.onStart = function (url, itemsLoaded, itemsTotal) {
+    console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 };
 //资源加载完成
-manager.onLoad = function ( ) {
+manager.onLoad = function () {
     init()
-    console.log( 'Loading complete!');
+    console.log('Loading complete!');
 };
-manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-    console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 };
-manager.onError = function ( url ) {
-    console.log( 'There was an error loading ' + url );
+manager.onError = function (url) {
+    console.log('There was an error loading ' + url);
 };
 
+
+window.addEventListener('click', (event) => {
+    event.preventDefault();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersection = raycaster.intersectObject(model);
+    if (intersection.length > 0 & !actionChanging) {
+        actionState = !actionState
+        if (actionState) {
+            actionChanging = true
+            action1.stop()
+            action2.stop()
+            action3.stop()
+            action4.play()
+        } else {
+            actionChanging = true
+            action1.stop()
+            action2.stop()
+            action3.play()
+            action4.stop()
+        }
+    }
+
+})
 
 // 调试参数
 const params = {
@@ -58,14 +83,14 @@ function init() {
     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 2, 500);
     //初始化相机位置
     camera.position.set(0, 40, -2);
-
     //初始化相机朝向
     camera.lookAt(0, 0, 0);
     //初始化时钟（动画用）
     clock = new THREE.Clock();
     //初始化场景
     scene = new THREE.Scene();
-
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2(0, 0)
     //定义灯光
     //点光
     const pointLight = new THREE.PointLight(0xff2e1f, 1, 10);
@@ -106,7 +131,7 @@ function init() {
     control.minDistance = 3;
     control.maxDistance = 40;
     control.maxPolarAngle = Math.PI * 0.7;
-    control.enablePan=false
+    control.enablePan = false
     container.appendChild(renderer.domElement);
     //调试ui
     gui()
@@ -177,7 +202,7 @@ function load() {
         '/texture/envcube/pz.png',
         '/texture/envcube/nz.png',
     ])
-     earthenvironmentMapTexture = cubeTextureLoader.load([
+    earthenvironmentMapTexture = cubeTextureLoader.load([
         '/texture/earthmap/px.png',
         '/texture/earthmap/nx.png',
         '/texture/earthmap/py.png',
@@ -198,22 +223,36 @@ function load() {
         model = gltf.scene;
         //读取动画
         animations = gltf.animations;
-        console.log(animations)
         //读取骨骼
         skeleton = new THREE.SkeletonHelper(model);
         skeleton.visible = false;
         //初始化动画混合器
         mixer = new THREE.AnimationMixer(model);
+        //动画回调函数
+        mixer.addEventListener('finished', (e) => {
+            actionChanging = false
+            const actionName = e.action._clip.name
+            if (actionName === 'bianxing-f') {
+                action1.play()
+            } else if (actionName === 'bianxing') {
+                action2.play()
+            }
+            console.log(e.action._clip.name)
+        })
+        mixer.addEventListener('loop',e=>{
+            console.log(e)
+        })
+
         //风筝状态
         action1 = mixer.clipAction(animations[0]);
         //天宫状态
         action2 = mixer.clipAction(animations[1]);
         //风筝-》天宫
         action3 = mixer.clipAction(animations[2]);
-        action3.loop=THREE.LoopOnce
-
+        action3.loop = THREE.LoopOnce
         //天宫-》风筝
         action4 = mixer.clipAction(animations[3]);
+        action4.loop = THREE.LoopOnce
 
     });
 }
