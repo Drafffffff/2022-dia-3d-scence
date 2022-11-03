@@ -81,7 +81,7 @@ function handlechange(event){
 */
 // 调试参数（忽视）
 const params = {
-    RGBshiftShaderp: 0.0015,
+    RGBshiftShaderp: 0.0008,
     emissiveIntensity: 1,
     toneMappingExposure: 1.2,
     cameraX: 0,
@@ -163,8 +163,8 @@ function init() {
     //相机控制器
     control = new OrbitControls(camera, renderer.domElement)
     control.enableDamping = true;
-    control.minDistance = 35;
-    control.maxDistance = 65;
+    control.minDistance = 25;
+    control.maxDistance = 45;
     control.maxPolarAngle = Math.PI * 0.7;
     control.enablePan = false
     //canve绑定到网页元素
@@ -196,10 +196,10 @@ function init() {
     model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
     model.children[0].children[1].material.envMapIntensity = 0.4
     model.children[0].children[2].material.envMapIntensity = 0.4
-    model.children[0].children[3].material.envMapIntensity = 0.4
-    model.children[0].children[4].material.emissiveIntensity = 1
-    model.children[0].children[3].material.emissiveIntensity = 1
-    model.children[0].children[2].material.emissiveIntensity = 1
+    // model.children[0].children[3].material.envMapIntensity = 0.4
+    // model.children[0].children[4].material.emissiveIntensity = 1
+    // model.children[0].children[3].material.emissiveIntensity = 1
+    // model.children[0].children[2].material.emissiveIntensity = 1
 
     // model.children[0].children[4].children[2].material.envMapIntensity = 5
     scene.background = earthenvironmentMapTexture
@@ -245,7 +245,7 @@ function load() {
     dracoLoader.setDecoderPath('/draco/');
     loader.setDRACOLoader(dracoLoader);
     //读取模型
-    loader.load('/model/zhuqingting.glb', function (gltf) {
+    loader.load('/model/kongming.glb', function (gltf) {
         //读取模型
         model = gltf.scene;
         //读取动画
@@ -269,17 +269,19 @@ function load() {
             }
         })
         //风筝状态
-        action1 = mixer.clipAction(animations[3]);
+        action1 = mixer.clipAction(animations[0]);
         //天宫状态
         action2 = mixer.clipAction(animations[2]);
         //风筝-》天宫
-        action3 = mixer.clipAction(animations[0]);
+        action3 = mixer.clipAction(animations[1]);
         action3.clampWhenFinished = true
         action3.loop =  THREE.LoopOnce
         //天宫-》风筝
-        action4 = mixer.clipAction(animations[1]);
+        action4 = mixer.clipAction(animations[3]);
         action4.clampWhenFinished = true
         action4.loop =  THREE.LoopOnce
+        console.log(animations)
+
     });
 }
 //动画循环函数
