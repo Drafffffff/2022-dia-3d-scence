@@ -191,14 +191,13 @@ function init() {
     scene.add(skeleton);
     scene.add(model);
     console.log(model)
-    model.children[0].children[1].material.envMap = environmentMapTexture
-    model.children[0].children[2].material.envMap = environmentMapTexture
-    model.children[0].children[3].children[0].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[3].children[1].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[3].children[0].material.envMapIntensity = 2
-    model.children[0].children[3].children[1].material.envMapIntensity = 2
-    model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[4].material.envMapIntensity = 3
+    model.children[0].children[1].children[0].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[1].children[1].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[1].children[2].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[1].children[3].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[1].children[3].material.envMapIntensity = 2
+    // model.children[0].children[1].children[4].material.envMap = earthenvironmentMapTexture2
+    // model.children[0].children[1].children[4].material.envMapIntensity = 3
     // model.children[0].children[4].material.emissiveIntensity = 1
     // model.children[0].children[3].material.emissiveIntensity = 1
     // model.children[0].children[2].material.emissiveIntensity = 1
