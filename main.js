@@ -151,9 +151,9 @@ function init() {
         .delay(100)
         .onComplete(() => {
             new Tween.Tween(camera.position).to({
-                x: -22.785,
-                y: 14.178,
-                z: -9.6
+                x: -37.415016472554186,
+                y: 10,
+                z: -21.6
             }, 4333.3)
                 .start()
         })
@@ -253,6 +253,7 @@ function animate() {
     Tween.update()
     control.update()
     composer.render()
+    console.log(camera.position)
 }
 
 /*
