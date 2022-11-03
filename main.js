@@ -11,13 +11,13 @@ import {DotScreenShader} from "three/addons/shaders/DotScreenShader.js";
 import {GUI} from "dat.gui";
 import "./style.css"
 import Tween from '@tweenjs/tween.js'
-import {func} from "three/nodes";
+import {func, mod} from "three/nodes";
 
 /*
 ==============定义变量=================
 */
 let camera, scene, composer, bloomPass, control, renderer, raycaster
-let RGBshiftShader, environmentMapTexture, earthenvironmentMapTexture
+let RGBshiftShader, environmentMapTexture, earthenvironmentMapTexture,earthenvironmentMapTexture2
 //动画相关变量
 let clock, model, skeleton, mixer, action,tween,mouse,animations
 //动画变量，形态状态
@@ -53,7 +53,6 @@ window.addEventListener('click', event=>{handlechange(event)})
 
 function handlechange(event){
     event.preventDefault();
-    console.log(event)
     if(event.type==="touchstart"){
 
     mouse.x = (event.targetTouches[0].clientX / width) * 2 - 1;
@@ -62,7 +61,6 @@ function handlechange(event){
         mouse.x = (event.clientX / width) * 2 - 1;
         mouse.y = -(event.clientY / height) * 2 + 1;
     }
-    console.log(mouse)
     raycaster.setFromCamera(mouse, camera);
     const intersection = raycaster.intersectObject(model);
     if (intersection.length > 0 & !actionChanging) {
@@ -78,7 +76,36 @@ function handlechange(event){
         }
     }
 }
-
+/*
+==============调试=================
+*/
+// 调试参数（忽视）
+const params = {
+    RGBshiftShaderp: 0.0015,
+    emissiveIntensity: 1,
+    toneMappingExposure: 1.2,
+    cameraX: 0,
+    cameraY: 40,
+    cameraZ: -2,
+}
+//调试ui（忽视）
+function gui() {
+    // const panel = new GUI({width: 300});
+    // panel.add(params, 'RGBshiftShaderp', 0.0, 0.01, 0.0001).onChange(v => {
+    //     RGBshiftShader.uniforms['amount'].value = v
+    // });
+    // panel.add(params, 'emissiveIntensity', 0.0, 1, 0.01).onChange(v => {
+    //     model.children[0].children[4].children[0].material.emissiveIntensity = v
+    //     model.children[0].children[4].children[1].material.emissiveIntensity = v
+    //     model.children[0].children[4].children[2].material.emissiveIntensity = v
+    //     model.children[0].children[1].material.emissiveIntensity = v
+    //     model.children[0].children[2].material.emissiveIntensity = v
+    //     model.children[0].children[3].material.emissiveIntensity = v
+    // });
+    // panel.add(params, 'toneMappingExposure', 0.0, 5, 0.01).onChange(v => {
+    //     renderer.toneMappingExposure = v
+    // });
+}
 /*
 ==============定义函数=================
 */
@@ -89,7 +116,7 @@ function init() {
     //定义相机
     camera = new THREE.PerspectiveCamera(40, width / height, 2, 500);
     //初始化相机位置
-    camera.position.set(0, 40, -2);
+    camera.position.set(0, 0, -65);
     //初始化相机朝向
     camera.lookAt(0, 0, 0);
     //初始化时钟（动画用）
@@ -99,14 +126,14 @@ function init() {
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2(0, 0)
     //点光
-    const pointLight = new THREE.PointLight(0xff2e1f, 1, 10);
-    pointLight.position.set(3, 3, 3);
-    scene.add(pointLight);
-    const pointLight1 = new THREE.PointLight(0x1dbaff, 5, 10);
-    pointLight1.position.set(-3, -3, 3);
+    // const pointLight = new THREE.PointLight(0xff2e1f, 1, 10);
+    // pointLight.position.set(3, 3, 3);
+    // scene.add(pointLight);
+    // const pointLight1 = new THREE.PointLight(0x1dbaff, 5, 10);
+    // pointLight1.position.set(-3, -3, 3);
     //环境光
     const AmbientLight = new THREE.AmbientLight(0xffffff, 1);
-    AmbientLight.position.set(0, 20, 0);
+    AmbientLight.position.set(10, 20, 10);
     scene.add(AmbientLight);
     const dirLight = new THREE.DirectionalLight(0xffdfcb, 10);
     dirLight.position.set(-3, 10, -10);
@@ -136,8 +163,8 @@ function init() {
     //相机控制器
     control = new OrbitControls(camera, renderer.domElement)
     control.enableDamping = true;
-    control.minDistance = 25;
-    control.maxDistance = 45;
+    control.minDistance = 35;
+    control.maxDistance = 65;
     control.maxPolarAngle = Math.PI * 0.7;
     control.enablePan = false
     //canve绑定到网页元素
@@ -145,31 +172,36 @@ function init() {
     //调试ui
     gui()
     //开场镜头动画
+
     tween = new Tween.Tween(camera.position)
-    tween.to({x: -16.8, y: 28.6, z: -24.6}, 1166.67)
+    // tween.to({x: -16.8, y: 28.6, z: -24.6}, 1166.67)
+    tween.to({x: 0, y: 40, z: -2}, 1166.67)
         .easing(Tween.Easing.Linear.None)
         .delay(100)
         .onComplete(() => {
+            const a = 1.5
             new Tween.Tween(camera.position).to({
-                x: -22.785,
-                y: 14.178,
-                z: -9.6
+                x: -34.7568,
+                y: 25.39,
+                z: -34.236
             }, 4333.3)
                 .start()
         })
     //场景修改
     scene.add(skeleton);
     scene.add(model);
+    console.log(model)
     model.children[0].children[1].material.envMap = environmentMapTexture
     model.children[0].children[2].material.envMap = environmentMapTexture
-    model.children[0].children[3].material.envMap = environmentMapTexture
-    model.children[0].children[5].children[0].material.envMap = environmentMapTexture
-    model.children[0].children[5].children[1].material.envMap = earthenvironmentMapTexture
-    model.children[0].children[5].children[2].material.envMap = earthenvironmentMapTexture
+    model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
     model.children[0].children[1].material.envMapIntensity = 0.4
     model.children[0].children[2].material.envMapIntensity = 0.4
     model.children[0].children[3].material.envMapIntensity = 0.4
-    model.children[0].children[5].children[2].material.envMapIntensity = 5
+    model.children[0].children[4].material.emissiveIntensity = 1
+    model.children[0].children[3].material.emissiveIntensity = 1
+    model.children[0].children[2].material.emissiveIntensity = 1
+
+    // model.children[0].children[4].children[2].material.envMapIntensity = 5
     scene.background = earthenvironmentMapTexture
     //开始动画
     tween.start()
@@ -197,6 +229,14 @@ function load() {
         '/texture/earthmap/pz.png',
         '/texture/earthmap/nz.png',
     ])
+    earthenvironmentMapTexture2 = cubeTextureLoader.load([
+        '/texture/earthmapb/px.png',
+        '/texture/earthmapb/nx.png',
+        '/texture/earthmapb/py.png',
+        '/texture/earthmapb/ny.png',
+        '/texture/earthmapb/pz.png',
+        '/texture/earthmapb/nz.png',
+    ])
     earthenvironmentMapTexture.encoding = THREE.sRGBEncoding
     environmentMapTexture.encoding = THREE.sRGBEncoding
     //初始化GLTF加载器
@@ -205,7 +245,7 @@ function load() {
     dracoLoader.setDecoderPath('/draco/');
     loader.setDRACOLoader(dracoLoader);
     //读取模型
-    loader.load('/model/fengzheng.glb', function (gltf) {
+    loader.load('/model/zhuqingting.glb', function (gltf) {
         //读取模型
         model = gltf.scene;
         //读取动画
@@ -229,15 +269,15 @@ function load() {
             }
         })
         //风筝状态
-        action1 = mixer.clipAction(animations[0]);
+        action1 = mixer.clipAction(animations[3]);
         //天宫状态
-        action2 = mixer.clipAction(animations[1]);
+        action2 = mixer.clipAction(animations[2]);
         //风筝-》天宫
-        action3 = mixer.clipAction(animations[2]);
+        action3 = mixer.clipAction(animations[0]);
         action3.clampWhenFinished = true
         action3.loop =  THREE.LoopOnce
         //天宫-》风筝
-        action4 = mixer.clipAction(animations[3]);
+        action4 = mixer.clipAction(animations[1]);
         action4.clampWhenFinished = true
         action4.loop =  THREE.LoopOnce
     });
@@ -260,33 +300,3 @@ function animate() {
 */
 load()
 
-/*
-==============调试=================
-*/
-// 调试参数（忽视）
-const params = {
-    RGBshiftShaderp: 0.0015,
-    emissiveIntensity: 1,
-    toneMappingExposure: 1.5,
-    cameraX: 0,
-    cameraY: 40,
-    cameraZ: -2,
-}
-//调试ui（忽视）
-function gui() {
-    // const panel = new GUI({width: 300});
-    // panel.add(params, 'RGBshiftShaderp', 0.0, 0.01, 0.0001).onChange(v => {
-    //     RGBshiftShader.uniforms['amount'].value = v
-    // });
-    // panel.add(params, 'emissiveIntensity', 0.0, 1, 0.01).onChange(v => {
-    //     model.children[0].children[4].children[0].material.emissiveIntensity = v
-    //     model.children[0].children[4].children[1].material.emissiveIntensity = v
-    //     model.children[0].children[4].children[2].material.emissiveIntensity = v
-    //     model.children[0].children[1].material.emissiveIntensity = v
-    //     model.children[0].children[2].material.emissiveIntensity = v
-    //     model.children[0].children[3].material.emissiveIntensity = v
-    // });
-    // panel.add(params, 'toneMappingExposure', 0.0, 5, 0.01).onChange(v => {
-    //     renderer.toneMappingExposure = v
-    // });
-}
