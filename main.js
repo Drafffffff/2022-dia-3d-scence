@@ -53,8 +53,8 @@ window.addEventListener('click', event=>{handlechange(event)})
 
 function handlechange(event){
     event.preventDefault();
+
     if(event.type==="touchstart"){
-    console.log(event)
     mouse.x = (event.targetTouches[0].clientX / width) * 2 - 1;
     mouse.y = -(event.targetTouches[0].clientY / height) * 2 + 1;
     }else{
@@ -63,6 +63,7 @@ function handlechange(event){
     }
     raycaster.setFromCamera(mouse, camera);
     const intersection = raycaster.intersectObject(model);
+    console.log(intersection)
     if (intersection.length > 0 & !actionChanging) {
         actionState = !actionState
         if (actionState) {
@@ -190,15 +191,18 @@ function init() {
     //场景修改
     scene.add(skeleton);
     scene.add(model);
-    console.log(model)
-    model.children[0].children[1].material.envMap = environmentMapTexture
-    model.children[0].children[2].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[1].material.envMapIntensity = 0.4
-    model.children[0].children[2].material.envMapIntensity = 2
-    model.children[0].children[1].material.emissiveIntensity = 1
-    model.children[0].children[2].material.emissiveIntensity = 1.5
 
-    // model.children[0].children[4].children[2].material.envMapIntensity = 5
+    const fan = model.children[0].children.find(_=>_.name==="帆001")
+    const fan1 = model.children[0].children.find(_=>_.name==="帆046")
+    const zhuti = model.children[0].children.find(_=>_.name==="主体039")
+    fan.material.emissiveIntensity = 1
+    zhuti.material.emissiveIntensity = 2
+    zhuti.material.envMap = earthenvironmentMapTexture2
+    zhuti.material.envMapIntensity = 2
+    fan1.children[0].material.envMap = environmentMapTexture
+    fan1.children[1].material.envMap = environmentMapTexture
+    fan1.children[0].material.envMapIntensity = 2
+    fan1.children[1].material.envMapIntensity = 2
     scene.background = earthenvironmentMapTexture
     //开始动画
     tween.start()
