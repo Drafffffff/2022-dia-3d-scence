@@ -83,7 +83,7 @@ function handlechange(event){
 const params = {
     RGBshiftShaderp: 0.0008,
     emissiveIntensity: 1,
-    toneMappingExposure: 1.2,
+    toneMappingExposure: 1.5,
     cameraX: 0,
     cameraY: 40,
     cameraZ: -2,
@@ -193,10 +193,12 @@ function init() {
     console.log(model)
     model.children[0].children[1].material.envMap = environmentMapTexture
     model.children[0].children[2].material.envMap = environmentMapTexture
+    model.children[0].children[3].children[0].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[3].children[1].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[3].children[0].material.envMapIntensity = 2
+    model.children[0].children[3].children[1].material.envMapIntensity = 2
     model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[1].material.envMapIntensity = 0.4
-    model.children[0].children[2].material.envMapIntensity = 0.4
-    // model.children[0].children[3].material.envMapIntensity = 0.4
+    model.children[0].children[4].material.envMapIntensity = 3
     // model.children[0].children[4].material.emissiveIntensity = 1
     // model.children[0].children[3].material.emissiveIntensity = 1
     // model.children[0].children[2].material.emissiveIntensity = 1
@@ -248,6 +250,7 @@ function load() {
     loader.load('/model/kongming.glb', function (gltf) {
         //读取模型
         model = gltf.scene;
+        model.rotation.y=Math.PI/2
         //读取动画
         animations = gltf.animations;
         //读取骨骼
@@ -259,10 +262,10 @@ function load() {
         mixer.addEventListener('finished', (e) => {
             actionChanging = false
             const actionName = e.action._clip.name
-            if (actionName === 'bianxing-f') {
+            if (actionName === '1>0') {
                 action1.play()
                 action4.stop()
-            } else if (actionName === 'bianxing') {
+            } else if (actionName === '0>1') {
                 // setWeight(2)
                 action2.play()
                 action3.stop()
