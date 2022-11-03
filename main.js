@@ -83,7 +83,7 @@ function handlechange(event){
 const params = {
     RGBshiftShaderp: 0.0015,
     emissiveIntensity: 1,
-    toneMappingExposure: 1.2,
+    toneMappingExposure: 1,
     cameraX: 0,
     cameraY: 40,
     cameraZ: -2,
@@ -191,15 +191,15 @@ function init() {
     scene.add(skeleton);
     scene.add(model);
     console.log(model)
-    model.children[0].children[1].material.envMap = environmentMapTexture
-    model.children[0].children[2].material.envMap = environmentMapTexture
-    model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
-    model.children[0].children[1].material.envMapIntensity = 0.4
-    model.children[0].children[2].material.envMapIntensity = 0.4
-    model.children[0].children[3].material.envMapIntensity = 0.4
-    model.children[0].children[4].material.emissiveIntensity = 1
-    model.children[0].children[3].material.emissiveIntensity = 1
-    model.children[0].children[2].material.emissiveIntensity = 1
+    // model.children[0].children[1].material.envMap = environmentMapTexture
+    // model.children[0].children[2].material.envMap = environmentMapTexture
+    // model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
+    // model.children[0].children[1].material.envMapIntensity = 0.4
+    // model.children[0].children[2].material.envMapIntensity = 0.4
+    // model.children[0].children[3].material.envMapIntensity = 0.4
+    // model.children[0].children[4].material.emissiveIntensity = 1
+    // model.children[0].children[3].material.emissiveIntensity = 1
+    // model.children[0].children[2].material.emissiveIntensity = 1
 
     // model.children[0].children[4].children[2].material.envMapIntensity = 5
     scene.background = earthenvironmentMapTexture
@@ -259,19 +259,19 @@ function load() {
         mixer.addEventListener('finished', (e) => {
             actionChanging = false
             const actionName = e.action._clip.name
-            if (actionName === 'bianxing-f') {
+            if (actionName === '变形-反') {
                 action1.play()
                 action4.stop()
-            } else if (actionName === 'bianxing') {
+            } else if (actionName === '变形') {
                 // setWeight(2)
                 action2.play()
                 action3.stop()
             }
         })
         //风筝状态
-        action1 = mixer.clipAction(animations[3]);
+        action1 = mixer.clipAction(animations[2]);
         //天宫状态
-        action2 = mixer.clipAction(animations[2]);
+        action2 = mixer.clipAction(animations[3]);
         //风筝-》天宫
         action3 = mixer.clipAction(animations[0]);
         action3.clampWhenFinished = true
@@ -280,6 +280,7 @@ function load() {
         action4 = mixer.clipAction(animations[1]);
         action4.clampWhenFinished = true
         action4.loop =  THREE.LoopOnce
+        console.log(animations)
     });
 }
 //动画循环函数
