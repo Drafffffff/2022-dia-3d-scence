@@ -54,7 +54,7 @@ window.addEventListener('click', event=>{handlechange(event)})
 function handlechange(event){
     event.preventDefault();
     if(event.type==="touchstart"){
-
+    console.log(event)
     mouse.x = (event.targetTouches[0].clientX / width) * 2 - 1;
     mouse.y = -(event.targetTouches[0].clientY / height) * 2 + 1;
     }else{
@@ -191,15 +191,12 @@ function init() {
     scene.add(skeleton);
     scene.add(model);
     console.log(model)
-    // model.children[0].children[1].material.envMap = environmentMapTexture
-    // model.children[0].children[2].material.envMap = environmentMapTexture
-    // model.children[0].children[4].material.envMap = earthenvironmentMapTexture2
-    // model.children[0].children[1].material.envMapIntensity = 0.4
-    // model.children[0].children[2].material.envMapIntensity = 0.4
-    // model.children[0].children[3].material.envMapIntensity = 0.4
-    // model.children[0].children[4].material.emissiveIntensity = 1
-    // model.children[0].children[3].material.emissiveIntensity = 1
-    // model.children[0].children[2].material.emissiveIntensity = 1
+    model.children[0].children[1].material.envMap = environmentMapTexture
+    model.children[0].children[2].material.envMap = earthenvironmentMapTexture2
+    model.children[0].children[1].material.envMapIntensity = 0.4
+    model.children[0].children[2].material.envMapIntensity = 2
+    model.children[0].children[1].material.emissiveIntensity = 1
+    model.children[0].children[2].material.emissiveIntensity = 1.5
 
     // model.children[0].children[4].children[2].material.envMapIntensity = 5
     scene.background = earthenvironmentMapTexture
@@ -280,7 +277,6 @@ function load() {
         action4 = mixer.clipAction(animations[1]);
         action4.clampWhenFinished = true
         action4.loop =  THREE.LoopOnce
-        console.log(animations)
     });
 }
 //动画循环函数
