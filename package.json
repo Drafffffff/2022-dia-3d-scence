@@ -12,8 +12,6 @@
     "vite": "^3.1.0"
   },
   "dependencies": {
-    "@theatre/core": "^0.5.0",
-    "@theatre/studio": "^0.5.0",
     "@tweenjs/tween.js": "^18.6.4",
     "dat.gui": "^0.7.9",
     "three": "^0.145.0",
